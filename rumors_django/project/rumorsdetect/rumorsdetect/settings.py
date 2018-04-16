@@ -25,12 +25,13 @@ SECRET_KEY = 'w_tatsntqhtl-4y#5*(3^v!xp_en%y$ouhu75q!98(!5mha#r-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['109.194.163.112', 'localhost', '127.0.0.1']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'detection.apps.DetectionConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
