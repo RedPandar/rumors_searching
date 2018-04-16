@@ -9,14 +9,28 @@ twitter rumors_analisation
 
 import twitter
 import datetime
-from time import sleep,ctime
+from time import ctime
 import io, json
+import pandas as pd
 
+# =============================================================================
+# Подключение к API Twitter
+# =============================================================================
 api = twitter.Api(consumer_key='EzWpyK9RyrOeRpgrefXdvXjrg',
 consumer_secret='IdHd4fMbobMujDITJHJ4wpFZ4vlcZxO68r5ofQhrR8l9gUqHGo',
 access_token_key = 	"296713992-YdgVZFM3requrT7s5aVMbav8hXonttWLZmvgBWam",
 access_token_secret=	"G1zujW6QStwMlbagvSrjf0s46IDsItfvWF5v0O3lZXLUW")
 app_name = "Rumors Searching"
+
+# =============================================================================
+# Блок организации датафрейма
+# =============================================================================
+
+table = pd.DataFrame(columns=['Name', 'ID', 'Verified', 'followers_count', 'friends_count', 'favourites_count', 'created_at', 'statuses_count', 'Credibility', 'Originallity', 'Influence', 'Role', 'Engagement'])
+
+# =============================================================================
+# Блок Функций проверки
+# =============================================================================
 
 def Credibility(verified:bool):
     if verified ==True:
@@ -31,16 +45,26 @@ def Influence(Influence:int):
     return print("Influence = ",Influence)
 
 def Role(followers:int,followees):
-    return print("Role = ",followers/followees)
+    try:
+        if type(followers/followees)!=0:
+         return print("Role = ",followers/followees) 
+    except ZeroDivisionError:
+         return print("Role = ",0) 
+    
 
 def Engagement(tweets:int,retweets:int,replies:int,favorites:int,acc_age:int):
     return print("Engagement = ",(tweets+retweets+replies+favorites)/(acc_age))
 
-for tweet in api.GetSearch(raw_query="q=TheWalkingDead&result_type=text&count=1&src=hash"):
+
+# =============================================================================
+# Блок вызова и вывода
+# =============================================================================
+count = 0
+for tweet in api.GetSearch(raw_query="q=TheWalkingDead&result_type=text&count=10&src=hash"):
     with io.open('tweet.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(tweet._json, ensure_ascii=False))
 
-    print("==============================================================")
+    print("\n==============================================================")
     
     timeline = api.GetUserTimeline(tweet.user.id, count=1) 
     with io.open('timeline.json', 'w', encoding='utf-8') as f:
@@ -57,10 +81,10 @@ for tweet in api.GetSearch(raw_query="q=TheWalkingDead&result_type=text&count=1&
     print("Нравится: ",tweet.user.favourites_count)
     print("Дата регистрации: ",tweet.user.created_at)
     print("Количество твитов: ",tweet.user.statuses_count)
-#    print("Количество твитов: ",tweet.quoted_status.retweet_count)    
+#    print("Количество твитов: ",timeline.retweet_count)    
     try:
-        if type(tweet.quoted_status.retweet_count)!='NoneType':
-         print("Количество ретвитов: ",tweet.quoted_status.retweet_count) 
+        if type(timeline.retweet_count)!='NoneType':
+         print("Количество ретвитов: ",timeline.retweet_count) 
     except Exception:
          print("Количество ретвитов = 0")
          
@@ -76,6 +100,12 @@ for tweet in api.GetSearch(raw_query="q=TheWalkingDead&result_type=text&count=1&
     print("==============================================================")
     print("Оценка доверия к пользователю")
     regYears = datetime.date.today().year 
-    Credibility(tweet.user.verified)
-    Role(tweet.user.followers_count,tweet.user.friends_count)
-    Influence(tweet.user.statuses_count)
+    credibility = Credibility(tweet.user.verified)
+    role = Role(tweet.user.followers_count,tweet.user.friends_count)
+    inf = Influence(tweet.user.statuses_count)
+    
+# =============================================================================
+#Блок записи в датафрейм
+# =============================================================================
+    table.loc[count] = ([tweet.user.screen_name, tweet.user.id, tweet.user.verified,tweet.user.followers_count, tweet.user.friends_count, tweet.user.favourites_count, tweet.user.created_at, tweet.user.statuses_count, credibility, 0, tweet.user.statuses_count, role, 0])
+    count +=1
