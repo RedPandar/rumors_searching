@@ -9,9 +9,10 @@ twitter rumors_analisation
 
 import twitter
 import datetime
-from time import ctime
+from time import ctime,sleep
 import io, json
 import pandas as pd
+import random
 
 # =============================================================================
 # Подключение к API Twitter
@@ -26,7 +27,7 @@ app_name = "Rumors Searching"
 # Блок организации датафрейма
 # =============================================================================
 
-table = pd.DataFrame(columns=['Name', 'ID', 'Verified', 'followers_count', 'friends_count', 'favourites_count', 'created_at', 'statuses_count', 'Credibility', 'Originallity', 'Influence', 'Role', 'Engagement'])
+table = pd.DataFrame(columns=['Name', 'ID', 'Verified', 'followers_count', 'friends_count', 'favourites_count', 'created_at', 'statuses_count','Geo','Time Zone', 'Credibility', 'Originallity', 'Influence', 'Role', 'Engagement'])
 
 # =============================================================================
 # Блок Функций проверки
@@ -34,78 +35,96 @@ table = pd.DataFrame(columns=['Name', 'ID', 'Verified', 'followers_count', 'frie
 
 def Credibility(verified:bool):
     if verified ==True:
-     return print("Credibility = 1")
+     return 1
     else:
-     return print("Credibility = 0")
+     return 0
      
 def Originallity(twt_count:int,retwt_count:int):
-    return print("Originallity = ",twt_count/retwt_count)
+    return twt_count/retwt_count
 
 def Influence(Influence:int):
-    return print("Influence = ",Influence)
+    return Influence
 
 def Role(followers:int,followees):
     try:
         if type(followers/followees)!=0:
-         return print("Role = ",followers/followees) 
+         return followers/followees
     except ZeroDivisionError:
-         return print("Role = ",0) 
+         return 0 
     
 
 def Engagement(tweets:int,retweets:int,replies:int,favorites:int,acc_age:int):
-    return print("Engagement = ",(tweets+retweets+replies+favorites)/(acc_age))
+    try:
+        if type(acc_age)!=0:
+         return (tweets+retweets+replies+favorites)/(acc_age)
+    except ZeroDivisionError:
+         return (tweets+retweets+replies+favorites)/(0.99) 
 
 
 # =============================================================================
 # Блок вызова и вывода
 # =============================================================================
 count = 0
-for tweet in api.GetSearch(raw_query="q=TheWalkingDead&result_type=text&count=10&src=hash"):
-    with io.open('tweet.json', 'w', encoding='utf-8') as f:
-        f.write(json.dumps(tweet._json, ensure_ascii=False))
-
-    print("\n==============================================================")
+for i in range(1):
+    for tweet in api.GetSearch(raw_query="q=Telegram&src=tren&count=1"):
+        with io.open('tweet.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(tweet._json, ensure_ascii=False))
     
-    timeline = api.GetUserTimeline(tweet.user.id, count=1) 
-    with io.open('timeline.json', 'w', encoding='utf-8') as f:
-        f.write(json.dumps(tweet._json, ensure_ascii=False))
-
-    print("Текст Твита: ",timeline)
-    print("==============================================================")
-    print("Данные пользователя")
-    print("Имя пользователя: ",tweet.user.screen_name)
-    print("ID пользователя: ",tweet.user.id)
-    print("Проверен: ",tweet.user.verified)
-    print("Подписан: ",tweet.user.followers_count)
-    print("Подписчики: ",tweet.user.friends_count)
-    print("Нравится: ",tweet.user.favourites_count)
-    print("Дата регистрации: ",tweet.user.created_at)
-    print("Количество твитов: ",tweet.user.statuses_count)
-#    print("Количество твитов: ",timeline.retweet_count)    
-    try:
-        if type(timeline.retweet_count)!='NoneType':
-         print("Количество ретвитов: ",timeline.retweet_count) 
-    except Exception:
-         print("Количество ретвитов = 0")
-         
-    print("==============================================================")
-    print("Данные по твиту: ")
-    print("Количество ретвитов: ",tweet.retweet_count)    
-    try:
-        if type(tweet.retweeted_status.favorite_count)!='NoneType':
-         print("Количество отметок 'Нравится': ",tweet.retweeted_status.favorite_count)
-    except Exception:
-         print("Количество отметок 'Нравится': 0")
-         
-    print("==============================================================")
-    print("Оценка доверия к пользователю")
-    regYears = datetime.date.today().year 
-    credibility = Credibility(tweet.user.verified)
-    role = Role(tweet.user.followers_count,tweet.user.friends_count)
-    inf = Influence(tweet.user.statuses_count)
+#        print("\n==============================================================")
+        print(count)
+        timeline = api.GetUserTimeline(tweet.user.id, count=1) 
+        with io.open('timeline.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(tweet._json, ensure_ascii=False))
     
-# =============================================================================
-#Блок записи в датафрейм
-# =============================================================================
-    table.loc[count] = ([tweet.user.screen_name, tweet.user.id, tweet.user.verified,tweet.user.followers_count, tweet.user.friends_count, tweet.user.favourites_count, tweet.user.created_at, tweet.user.statuses_count, credibility, 0, tweet.user.statuses_count, role, 0])
-    count +=1
+        print("Текст Твита: ",timeline[0].text)
+        
+        print("==============================================================")
+        print("Данные пользователя")
+        print("Имя пользователя: ",tweet.user.screen_name)
+        print("ID пользователя: ",tweet.user.id)
+        print("Проверен: ",tweet.user.verified)
+        print("Подписан: ",tweet.user.followers_count)
+        print("Подписчики: ",tweet.user.friends_count)
+        print("Нравится: ",tweet.user.favourites_count)
+        print("Дата регистрации: ",tweet.user.created_at)
+        print("Количество твитов: ",tweet.user.statuses_count) 
+        try:
+            if type(timeline.retweet_count)!='NoneType':
+             print("Количество ретвитов: ",timeline.retweet_count) 
+        except Exception:
+             print("Количество ретвитов = 0")
+        
+        try:
+            if type(tweet.user.time_zone)!='Null':
+             print("Локация : ",tweet.user.time_zone) 
+        except Exception:
+             print("Локация : Неизвестна")
+             
+        print("==============================================================")
+        print("Данные по твиту: ")
+        print("Количество ретвитов: ",tweet.retweet_count)    
+        try:
+            if type(tweet.retweeted_status.favorite_count)!='NoneType':
+             print("Количество отметок 'Нравится': ",tweet.retweeted_status.favorite_count)
+        except Exception:
+             print("Количество отметок 'Нравится': 0")
+             
+        print("==============================================================")
+        print("Оценка доверия к пользователю")
+        date = (tweet.user.created_at).split()
+        regYears = datetime.date.today().year-int(date[5])
+        print("Полных лет с регистрации: ",regYears)
+        credibility = Credibility(tweet.user.verified)
+        role = Role(tweet.user.followers_count,tweet.user.friends_count)
+        inf = Influence(tweet.user.statuses_count)
+        retweets = (tweet.user.statuses_count/100)*random.randint(1,50) 
+        replies = (tweet.user.statuses_count/100)*random.randint(-25, 25)
+        engagement = Engagement(tweet.user.statuses_count,retweets,tweet.user.favourites_count,replies,regYears)
+        originallity = Originallity(tweet.user.statuses_count,retweets)
+    # =============================================================================
+    #Блок записи в датафрейм
+    # =============================================================================
+        table.loc[count] = ([tweet.user.screen_name, tweet.user.id, tweet.user.verified,tweet.user.followers_count, tweet.user.friends_count, tweet.user.favourites_count, tweet.user.created_at, tweet.user.statuses_count,tweet.user.lang,tweet.user.time_zone, credibility, originallity, tweet.user.followers_count, role, engagement])
+        count +=1
+        sleep(0.5)
+#table.to_excel('out.xlsx')
