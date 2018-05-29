@@ -1,0 +1,34 @@
+{%extends 'base.html' %}
+{%load static%}
+
+{%block content%}
+<div class='container' >
+    <div class="card ">
+            <div class="card-header text-white bg-dark ">
+                    <h1>У вас есть что рассказать?</h1>
+                </div>
+            <div class='row '>
+                    <div class='col align-self-center'>
+                        <div class="row">
+                            </div>
+                                <div class='well'>
+                                <form role="form" action="" method="post">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+
+                                    <div class='row'>
+                                        <div class='col-sm-8'>
+                                            <div class='col align-self-center'>
+                                                    <input type='submit' class='btn btn-outline-dark' value='Отправить' /> 
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+            </div>
+    </div>
+    </div>
+{%endblock content%}

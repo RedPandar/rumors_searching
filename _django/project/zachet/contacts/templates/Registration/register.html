@@ -1,0 +1,51 @@
+{%extends 'base.html' %}
+{%load static%}
+
+{%block content%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% load bootstrap4 %}
+    <script src="{% bootstrap_jquery_url %}"></script>
+    {% bootstrap_javascript %}
+    {% bootstrap_css %}
+    <title>Registration</title>
+</head>
+<body>
+<div class="container" style="width: 100%">
+    <div class="card">
+        <div class="card-header">
+            <h1>Регистрация</h1>
+        </div>
+            <div id = "form_reg">
+                    <form method="post" action="{%url 'register' %}">
+                            {%csrf_token%}
+            
+                            {% if form.errors %}
+                            <p>
+                                <div class="alert alert -danger" role="alert">Ошибка!</div>
+                            </p>
+                            {% endif %}
+            
+                            {% if next %}
+                            <p>
+                                <div class="alert alert-danger" role="alert">Необходимо заполнить все поля!</div>
+                            </p>
+                            {% endif%}
+            
+                            {% bootstrap_form form %}
+                            <button type="submit" class="btn btn-primary" value="Register">
+                                Отправить
+                            </button>
+                    </form>
+            </div>
+            <div class="card-footer"></div>
+            </div>
+    </div>
+    </div>
+</body>
+</html>
+{%endblock content%}
