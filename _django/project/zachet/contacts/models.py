@@ -1,14 +1,17 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-class Reporter(models.Model):
-    full_name = models.CharField(max_length=70)
 
-    def __str__(self):              # __unicode__ on Python 2
-        return self.full_name
+class query_data(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    search_text = models.TextField(max_length=500)
+    lang = models.CharField(max_length=10)
+    count = models.CharField(max_length=3)
+    from_data = models.CharField(max_length=12)
+    to_data = models.CharField(max_length=12)
 
-class Article(models.Model):
-    pub_date = models.DateField()
-    headline = models.CharField(max_length=200)
-    content = models.TextField()
-    reporter = models.ForeignKey(Reporter, on_delete=models.CASCADE)
-# Create your models here.
+class query_data_analyse(models.Model):
+    query_data = models.ForeignKey(query_data, on_delete=models.CASCADE)
+    count = models.CharField(max_length=3)
+    uni_count = models.CharField(max_length=3)
+    rt_count = models.CharField(max_length=3)

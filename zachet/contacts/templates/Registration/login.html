@@ -1,0 +1,57 @@
+
+{% load staticfiles %}
+
+{%block content%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% load bootstrap4 %}
+    <script src="{% bootstrap_jquery_url %}"></script>
+    {% bootstrap_javascript %}
+    {% bootstrap_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}" />
+    <title>Login</title>
+</head>
+<body>
+    {% if form.errors %}
+    <p>
+        <div class="alert alert-danger" role="alert">Ошибка!</div>
+    </p>
+    {% endif %}
+
+    {% if next %}
+    <p>
+        <div class="alert alert-danger" role="alert">Необходимо заполнить все поля!</div>
+    </p>
+    {% endif%}
+ 
+<form action="{{ next }}" method="post" class="form">
+    <div class="text-center mb-4">
+        <div class="card text-white bg-dark">
+                <div class="card-header   border-light border-dark " align="center">
+                        <img class="mb-4" src="{% static 'img/boss.svg' %}" alt="" width="100" height="100">
+                </div>
+
+    {% csrf_token %}
+    {% bootstrap_form form %}
+
+    <div class="card-footer border-dark   border-light" align="center">
+            {% buttons %}   
+            <button type="submit" class="btn btn-primary">
+                Ок!
+            </button>
+        {% endbuttons %}
+        <p class="mt-5 text-muted text-center">&copy; 2017-2018</p>
+    </div>
+
+        </div>
+    </div>
+</form>
+
+</body>
+
+</html>
+{%endblock content%}

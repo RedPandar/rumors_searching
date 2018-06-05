@@ -1,22 +1,56 @@
 from django.shortcuts import render,redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
-from django.core.mail import EmailMessage
+from django.views.generic import TemplateView
 from django.template.loader import get_template
-from contacts.forms import RegistrationForm
-from .forms import ContactForm
-from django.contrib import messages
+from contacts.forms import RegistrationForm,queryform
 import twitter
 import datetime
-from time import ctime,sleep
-import io, json
-import pandas as pd
-import numpy as np
-import random
 from django.http import HttpResponse
+from .App import main
+from contacts.models import query_data, query_data_analyse
+import django_tables2 as tables
+from django.contrib.auth.decorators import login_required
 
-def index(request):
-    return render(request,'Zachet_temp/index.html')
+class class_table(tables.Table):
+    class Meta:
+        model = query_data
+        attrs = {'class': 'table table-hover'}
+
+class index(TemplateView):
+    template_name = 'Zachet_temp/index.html'
+    def get(self,request):
+        if request.user.is_anonymous==False:
+            form = queryform()
+            table_class = class_table(query_data.objects.filter(user=request.user))
+            context = {'form':form, 'past_query': table_class}
+            return render(request,self.template_name,context)
+        else:
+            return redirect('login')
+
+    def post(self,request):
+        form = queryform(request.POST)
+        if form.is_valid():
+            query = form.save(commit=False)
+            query.user = request.user
+            query.save()
+            search_text = request.POST.get('search_text', '')
+            lang = request.POST.get('lang','')
+            count = request.POST.get('count', '')
+            from_data = request.POST.get('from_data', '')
+            To = request.POST.get('to_data', '')
+            context = {
+                'search_text': search_text,
+                'lang': lang,
+                'count': count,
+                'from_data': from_data,
+                'to_data': To,
+            }
+            main.twtt(search_text,lang,count,from_data,To)
+            return redirect('query')
+        return render(request,self.template_name, {
+            'form': form,
+        })
 
 def register(request):
     if request.method == 'POST':
@@ -34,107 +68,13 @@ def register(request):
 
     contex = {'form' : form}
     return render(request,'Registration/register.html',contex)
-
-def contact(request):
-    form_class = ContactForm
-
-    # new logic!
-    if request.method == 'POST':
-        form = form_class(data=request.POST)
-
-        if form.is_valid():
-            contact_name = request.POST.get(
-                'contact_name'
-            , '')
-            contact_email = request.POST.get(
-                'contact_email'
-            , '')
-            form_content = request.POST.get('content', '')
-
-            template =   get_template('contact_template.txt')
-            context = {
-                'contact_name': contact_name,
-                'contact_email': contact_email,
-                'form_content': form_content,
-            }
-            content = template.render(context)
-
-            email = EmailMessage(
-                "New contact form submission",
-                content,
-                "Your website" +'',
-                ['youremail@gmail.com'],
-                headers = {'Reply-To': contact_email }
-            )
-            email.send()
-            messages.success(request, 'Ваше сообщение доставлено!')
-            return redirect('contact')
-
-    return render(request, 'Zachet_temp/contact.html', {
-        'form': form_class,
-    })
-
-def profile(request):
-    return render(request,'Zachet_temp/profile.html')
-
+    
 def logout(request):
     return redirect('index')
 
-def video(request):
-    return render(request,'Zachet_temp/video.html')
-
-def plot(request):
-        api = twitter.Api(consumer_key='EzWpyK9RyrOeRpgrefXdvXjrg',
-        consumer_secret='IdHd4fMbobMujDITJHJ4wpFZ4vlcZxO68r5ofQhrR8l9gUqHGo',
-        access_token_key = 	"296713992-YdgVZFM3requrT7s5aVMbav8hXonttWLZmvgBWam",
-        access_token_secret=	"G1zujW6QStwMlbagvSrjf0s46IDsItfvWF5v0O3lZXLUW")
-
-        table = pd.DataFrame(columns=['Name', 'ID', 'Verified', 'followers_count', 'friends_count', 'favourites_count', 'created_at', 'statuses_count','Geo','Time Zone', 'Credibility', 'Originallity', 'Influence', 'Role', 'Engagement','text'])
-        def Credibility(verified:bool):
-                if verified ==True:
-                    return 1
-                else:
-                    return 0            
-        def Originallity(twt_count:int,retwt_count:int):
-                return twt_count/retwt_count
-
-        def Influence(Influence:int):
-                return Influence
-
-        def Role(followers:int,followees):
-                try:
-                    if type(followers/followees)!=0:
-                        return followers/followees
-                except ZeroDivisionError:
-                        return 0            
-
-        def Engagement(tweets:int,retweets:int,replies:int,favorites:int,acc_age:int):
-                try:
-                    if type(acc_age)!=0:
-                        return (tweets+retweets+replies+favorites)/(acc_age)
-                except ZeroDivisionError:
-                    return (tweets+retweets+replies+favorites)/(0.99) 
-
-        count = 0
-        for i in range(5):
-            for tweet in api.GetSearch(raw_query="q=Telegram&src=tren&count=1"):
-                with io.open('tweet.json', 'w', encoding='utf-8') as f:
-                    f.write(json.dumps(tweet._json, ensure_ascii=False))
-            
-                timeline = api.GetUserTimeline(tweet.user.id, count=1) 
-                date = (tweet.user.created_at).split()
-                regYears = datetime.date.today().year-int(date[5])
-                print("Полных лет с регистрации: ",regYears)
-                credibility = Credibility(tweet.user.verified)
-                role = Role(tweet.user.followers_count,tweet.user.friends_count)
-                inf = Influence(tweet.user.statuses_count)
-                retweets = (tweet.user.statuses_count/100)*random.randint(1,50) 
-                replies = (tweet.user.statuses_count/100)*random.randint(-25, 25)
-                engagement = Engagement(tweet.user.statuses_count,retweets,tweet.user.favourites_count,replies,regYears)
-                originallity = Originallity(tweet.user.statuses_count,retweets)
-
-                table.loc[i] = ([tweet.user.screen_name, tweet.user.id, tweet.user.verified,tweet.user.followers_count, tweet.user.friends_count, tweet.user.favourites_count, tweet.user.created_at, tweet.user.statuses_count,tweet.user.lang,tweet.user.time_zone, credibility, originallity, tweet.user.followers_count, role, engagement,timeline[0].text])
-                count +=1
-
-
-        return HttpResponse(table.to_html(classes='table table-striped table-dark'))
+def query(request):
+    all_entries = query_data.objects.all()
+    last_entries = query_data.objects.last()
+    template = get_template('Zachet_temp/query.html')
+    context = {'all_entries':all_entries,'last_entries':last_entries,}
+    return HttpResponse(template.render(context))

@@ -1,37 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
-class ContactForm(forms.Form):
-    contact_name = forms.CharField(required=True, widget=forms.TextInput(
-        attrs ={
-            'class':'form-control',
-            'aria-label':'Username',
-            'placeholder':'Введите Имя',
-        }
-    ))
-    contact_email = forms.EmailField(required=True, widget=forms.TextInput(
-        attrs ={
-            'class':'form-control',
-            'type':'email',
-            'aria-label':'Username',
-            'placeholder':'Введите Email',
-        }
-    ))
-    content = forms.CharField(required=True, widget=forms.Textarea(
-        attrs ={
-            'class':'form-control',
-            'aria-label':'With textarea',
-            'aria-label':'Username',
-            'placeholder':'Введите Текст',
-        }
-    ))
-
-    def __init__(self, *args, **kwargs):
-        super(ContactForm, self).__init__(*args, **kwargs)
-        self.fields['contact_name'].label = "Ваше Имя:"
-        self.fields['contact_email'].label = "Ваш email:"
-        self.fields['content'].label = "Что вы хотите нам сообщить?"
+from contacts.models import query_data
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -58,3 +28,56 @@ class RegistrationForm(UserCreationForm):
             user.save()
 
         return user
+
+class queryform(forms.ModelForm):
+    search_text = forms.CharField(max_length=500,required=True, widget=forms.TextInput(
+        attrs ={
+            'class':'form-control',
+            'aria-label':'Username',
+            'placeholder':'Введите слова по которым осуществляется поиск',
+        }
+    ))
+
+    lang = forms.CharField(required=True, widget=forms.TextInput(
+        attrs ={
+            'class':'form-control',
+            'aria-label':'Username',
+            'placeholder':'Введите язык',
+        }
+    ))
+    count = forms.CharField(required=True, widget=forms.TextInput(
+        attrs ={
+            'class':'form-control',
+            'aria-label':'With textarea',
+            'aria-label':'Username',
+            'placeholder':'Введите количество',
+        }
+    ))
+
+    from_data = forms.DateField(required=True, widget=forms.SelectDateWidget(
+        attrs ={
+            'class':'form-control',
+            'aria-label':'Username',
+            'placeholder':'%Y-%m-%d',
+        }
+    ))
+
+    to_data = forms.DateField(required=True, widget=forms.SelectDateWidget(
+        attrs ={
+            'class':'form-control',
+            'aria-label':'Username',
+            'placeholder':'%Y-%m-%d',
+        }
+    ))
+
+    def __init__(self, *args, **kwargs):
+        super(queryform, self).__init__(*args, **kwargs)
+        self.fields['search_text'].label = "Ваше слова:"
+        self.fields['lang'].label = "Ваш язык:"
+        self.fields['count'].label = "Количество"
+        self.fields['from_data'].label = "От"
+        self.fields['to_data'].label = "До"
+    
+    class Meta:
+        model = query_data
+        fields = ('search_text','lang','count','from_data','to_data',)

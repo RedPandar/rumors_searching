@@ -8,14 +8,15 @@
     {% load bootstrap4 %}
     {% bootstrap_javascript %}
     {% bootstrap_css %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}" />
+
     <link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}" />
+
     <title>Index</title>
 </head>
 <body>
 
     {%include 'navbar.html'%}
-
+    {%include 'footer.html'%}
     {%block content%}
 
     {%endblock content%}
